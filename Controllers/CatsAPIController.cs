@@ -20,5 +20,32 @@ namespace Cats_API.Controllers
         {
             return await _context.cats.ToListAsync();
         }
+
+        [HttpPost]
+        public async Task<ActionResult<Cat>> post_cat(Cat product)
+        {
+            _context.cats.Add(product);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetProduct", new { name = product.name, age = product.age, breed = product.breed, 
+                gender = product.gender, color = product.color }, product);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteByName(string name)
+        {
+           
+            var product = await _context.cats.SingleOrDefaultAsync(p => p.name == name); 
+            
+            if (product == null)
+            {
+                return NotFound(); //404
+            }
+
+            _context.cats.Remove(product);
+            await _context.SaveChangesAsync();
+
+            return NoContent(); //204 No Content
+        }
     }
 }
