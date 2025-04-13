@@ -9,6 +9,8 @@ namespace Cats_API.Controllers
     public class CatsAPIController : ControllerBase
     {
 
+        private readonly Cat empty_cat = new Cat { name = "empty" };
+
         private readonly ApplicationDbContext _context;
         public CatsAPIController(ApplicationDbContext context) 
         { 
@@ -24,12 +26,23 @@ namespace Cats_API.Controllers
         [HttpPost]
         public async Task<ActionResult<Cat>> post_cat(Cat product)
         {
-            _context.cats.Add(product);
+            if (product == null) { return Ok(empty_cat); }
+            
+            var buf = await _context.cats.FindAsync(product.name);
+            if (buf == null) { _context.cats.Add(product); }
+            else 
+            {
+                buf.breed = product.breed;
+                buf.age = product.age;  
+                buf.color = product.color;
+                buf.gender = product.gender;
+            }
+
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProduct", new { name = product.name, age = product.age, breed = product.breed, 
-                gender = product.gender, color = product.color }, product);
+            return Ok();
         }
+
 
         [HttpDelete]
         public async Task<IActionResult> DeleteByName(string name)
@@ -45,7 +58,7 @@ namespace Cats_API.Controllers
             _context.cats.Remove(product);
             await _context.SaveChangesAsync();
 
-            return NoContent(); //204 No Content
+            return Ok(empty_cat); //204 No Content
         }
     }
 }
